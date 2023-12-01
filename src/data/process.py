@@ -3,8 +3,8 @@ import albumentations as alb
 
 class GaussianNoise:
     
-    def __call__(self, image: np.ndarray) -> np.ndarray:
-        scale = np.random.uniform(0.01, 0.5)
+    def __call__(self, image: np.ndarray, scale: float = None) -> np.ndarray:
+        # scale = np.random.uniform(0.01, 0.5)
         noise = np.random.normal(loc=0, scale=scale, size=image.shape[:2])
         return noise + image
 
