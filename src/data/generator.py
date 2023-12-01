@@ -12,13 +12,12 @@ class ImageDataGenerator(keras.utils.Sequence):
     def __init__(
             self,
             list_files,
-            batch_size=2,
-            # output_shape,
-            input_shape: tuple = (256, 256, 1),
+            batch_size: int,
+            input_shape: tuple,
             shuffle: bool = True,
     ):
         self.batch_size  = batch_size
-        self.input_shape = input_shape
+        self.input_shape = tuple(input_shape)
         self.list_files  = list_files
         self.shuffle     = shuffle
 
