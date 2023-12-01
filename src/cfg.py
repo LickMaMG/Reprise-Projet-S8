@@ -1,0 +1,149 @@
+from utils import TackleWarnings
+TackleWarnings()
+
+import time, os
+from tensorflow import keras
+from sklearn.model_selection import train_test_split
+from callbacks import ExpSchedule, WarmupCosineSchedule, CosineSchedule, ConfusionMatrix
+# from model.unet import Unet
+from data.generator import ImageDataGenerator
+
+
+class Cfg:
+    MODELS_DIR = "models"
+    SEED = 42
+
+    DATASETS = {
+        "generator": ImageDataGenerator,
+    }
+
+    MODELS = {
+        "unet": "Unet", #! impelment
+        "pca": "PCA", #! impelment
+    }
+
+    LOSSES = {
+        "categorical_crossentropy":        "categorical_crossentropy",
+        "sparse_categorical_crossentropy": "sparse_categorical_crossentropy",
+        "mse": "mse"
+    }
+
+
+    OPTIMIZERS = {
+        "adam": "adam",
+    }
+
+    METRICS = {
+        "mae":"mae",
+        "psnr":"PeakSignalNoiseRatio" #! implement
+    }
+
+    SCHEDULERS = {
+        "ExpSchedule":          ExpSchedule,
+        "WarmupCosineSchedule": WarmupCosineSchedule,
+        "CosineSchedule":       CosineSchedule,
+    }
+
+
+    @classmethod
+    def get_generator(cls, cfg: dict, annots: list):
+        name   = cfg.get("dataset").get("name")
+        params = cfg.get("dataset").get("params")
+        return  cls.DATASETS.get(name)(
+            list_annots = annots,
+            **params
+        )
+    
+    @staticmethod
+    def get_annots(cfg: dict):
+        annot_filename = cfg.get("dataset").get("annot_filename")
+        with open(annot_filename) as file:
+            annots = file.read().split("\n")
+        annots = [line.split(', ')[:2] for line in annots if len(line)>0]
+        
+        train_annots, test_annots = train_test_split(annots, test_size=0.2, random_state=Cfg.SEED)
+        val_annots, test_annots   = train_test_split(test_annots, test_size=0.5, random_state=Cfg.SEED)
+
+        annots = {
+            "train": train_annots,
+            "val":   val_annots,
+            "test":  test_annots,
+        }
+
+        return annots
+
+    @classmethod
+    def get_model(cls, cfg: dict):
+        model_name    = cfg.get("model").get("name")
+        model_params  = cfg.get("model").get("params")
+        model         = cls.MODELS.get(model_name)(**model_params)
+        return model
+
+    @classmethod
+    def get_optimizer(cls, cfg: dict):
+        name      = cfg.get("optimizer").get("name")
+        params    = cfg.get("optimizer").get("params", None)
+        optimizer = cls.OPTIMIZERS.get(name)
+        if params: optimizer = optimizer(**params)
+
+        return optimizer
+    
+    @classmethod
+    def get_loss(cls, cfg: dict):
+        name   = cfg.get("loss").get("name")
+        params = cfg.get("loss").get("params", None)
+        loss   = cls.LOSSES.get(name)
+        if params: loss = loss(**params)
+        return  loss
+    
+
+    @classmethod
+    def get_metrics(cls, cfg: dict):
+        metrics = []
+        for item in cfg.get("metrics"):
+            metric_params = item.get("params", None)
+            metric = cls.METRICS.get(item.get("name"))
+            if metric_params: metric = metric(**metric_params)
+            metrics.append(metric)
+        return metrics
+
+    @staticmethod
+    def get_max_epochs(cfg: dict):
+        training_params = cfg.get("training")
+        max_epochs      = training_params.get("epochs")
+        return max_epochs
+    
+    @classmethod
+    def get_lr_scheduler(cls, cfg: dict):
+        training_params     = cfg.get("training")
+        lr_scheluder_name   = training_params.get("lr_scheduler").get("name")
+        lr_scheluder_params = training_params.get("lr_scheduler").get("params")
+        lr_scheluder        = cls.SCHEDULERS.get(lr_scheluder_name)(**lr_scheluder_params)
+        return lr_scheluder
+
+    @staticmethod
+    def get_tensorboard(logdir: str):
+        return keras.callbacks.TensorBoard(log_dir=logdir)
+
+    @staticmethod
+    def get_id_logdir(cfg: dict):
+        training_name = cfg.get("name")
+        run_id        = time.strftime("{}_%Y_%m_%d-%H_%M_%S".format(training_name))
+        logdir        = os.path.join("./logs/", run_id)
+        return run_id, logdir
+
+    @staticmethod
+    def get_classes(cfg: dict):
+        return cfg.get("dataset").get("classes")
+    
+
+    @classmethod
+    def save_model(cls, run_id, model):
+        os.makedirs(Cfg.MODELS_DIR, exist_ok=True)
+        model_folder = os.path.join(Cfg.MODELS_DIR, run_id)
+        os.makedirs(model_folder, exist_ok=True)
+        model_filename = os.path.join(model_folder, run_id)
+        model.save_weights(model_filename)
+
+
+    
