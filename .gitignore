@@ -1,0 +1,19 @@
+# ignore environments
+env/
+
+# ignore png files
+*.png
+*.jpg
+
+# ignore cache
+__pycache__/
+
+# ignore pdf
+*.pdf
+
+# data
+/dataset/
+*.raw
+
+# notebooks
+*ipynb
