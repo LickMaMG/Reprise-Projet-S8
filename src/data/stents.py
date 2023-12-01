@@ -1,4 +1,4 @@
-import time, cv2, os
+import cv2, os
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -12,8 +12,8 @@ class Stents:
     def __init__(self) -> None:
         content = self.read_raw()
         self.split(content)
-        # plt.imshow(content, cmap="gray")
-        # plt.show()
+        plt.imshow(content, cmap="gray")
+        plt.show()
         
     @classmethod
     def read_raw(cls) -> np.ndarray:
@@ -31,7 +31,9 @@ class Stents:
                 num = row*3+col+1
                 stent = content[row*stent_width:(row+1)*stent_width, col*stent_width:(col+1)*stent_width]
                 stent = stent*255.
+
                 stent = cv2.resize(stent, cls.shape)
+
                 filename = os.path.join(cls.savedir, "stent-%d.jpg" % num)
                 plt.imsave(filename, stent, cmap="gray")
                 print("Stent image saved at %s" % filename)
