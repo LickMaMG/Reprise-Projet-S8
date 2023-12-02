@@ -1,9 +1,8 @@
-from utils import PathManager, TackleWarnings
-PathManager("./src"); TackleWarnings()
+from utils import TackleWarnings
+TackleWarnings()
 
 import os, yaml, random
 from argparse import ArgumentParser
-from callbacks import  ConfusionMatrix
 from keras.optimizers import Adam
 
 from cfg import Cfg
@@ -27,22 +26,7 @@ def main() -> None:
     with open(cfg_filename, "r") as file:
         cfg = yaml.safe_load(file)
 
-    model = Cfg.get_model(cfg=cfg)
-
-    optimizer = Cfg.get_optimizer(cfg=cfg)
-    loss      = Cfg.get_loss(cfg=cfg)
-    metrics   = Cfg.get_metrics(cfg=cfg)
-    
-    model.compile(
-        optimizer=optimizer,
-        loss=loss,
-        metrics = metrics
-    )
-    
-    
-
     annots = Cfg.get_annots(cfg=cfg)
-
 
     train_generator = Cfg.get_generator(
         cfg=cfg,
@@ -53,25 +37,17 @@ def main() -> None:
         cfg=cfg,
         annots=annots["val"],
     )
-    
-    max_epochs     = Cfg.get_max_epochs(cfg)
-    lr_scheduler   = Cfg.get_lr_scheduler(cfg)
-    run_id, logdir = Cfg.get_id_logdir(cfg)
-    tensorboard    = Cfg.get_tensorboard(logdir)
 
-    callbacks = [
-        lr_scheduler,
-        tensorboard
-    ]
+    model = Cfg.get_model(cfg=cfg)
 
-    model.fit(
-        train_generator,
-        epochs=max_epochs,
-        callbacks=callbacks,
-        validation_data = val_generator
+    Cfg.train(
+        cfg=cfg,
+        model=model,
+        train_gen=train_generator,
+        val_gen=val_generator
     )
     
-    Cfg.save_model(run_id=run_id, model=model)
+    # Cfg.save_model(run_id=run_id, model=model)
 
 
     

@@ -4,8 +4,9 @@ TackleWarnings()
 import time, os
 from tensorflow import keras
 from sklearn.model_selection import train_test_split
-from callbacks import ExpSchedule, WarmupCosineSchedule, CosineSchedule, ConfusionMatrix
+from callbacks import ExpSchedule, WarmupCosineSchedule, CosineSchedule
 # from model.unet import Unet
+from model.pca import CustomPCA
 from data.generator import ImageDataGenerator
 
 
@@ -19,7 +20,7 @@ class Cfg:
 
     MODELS = {
         "unet": "Unet", #! impelment
-        "pca": "PCA", #! impelment
+        "pca": CustomPCA,
     }
 
     LOSSES = {
@@ -50,7 +51,7 @@ class Cfg:
         name   = cfg.get("dataset").get("name")
         params = cfg.get("dataset").get("params")
         return  cls.DATASETS.get(name)(
-            list_annots = annots,
+            list_files = annots,
             **params
         )
     
@@ -81,26 +82,29 @@ class Cfg:
 
     @classmethod
     def get_optimizer(cls, cfg: dict):
-        name      = cfg.get("optimizer").get("name")
-        params    = cfg.get("optimizer").get("params", None)
-        optimizer = cls.OPTIMIZERS.get(name)
+        train_args = cfg.get("training")
+        name       = train_args.get("optimizer").get("name")
+        params     = train_args.get("optimizer").get("params", None)
+        optimizer  = cls.OPTIMIZERS.get(name)
         if params: optimizer = optimizer(**params)
 
         return optimizer
     
     @classmethod
     def get_loss(cls, cfg: dict):
-        name   = cfg.get("loss").get("name")
-        params = cfg.get("loss").get("params", None)
-        loss   = cls.LOSSES.get(name)
+        train_args = cfg.get("training")
+        name       = train_args.get("loss").get("name")
+        params     = train_args.get("loss").get("params", None)
+        loss       = cls.LOSSES.get(name)
         if params: loss = loss(**params)
         return  loss
     
 
     @classmethod
     def get_metrics(cls, cfg: dict):
+        train_args = cfg.get("training")
         metrics = []
-        for item in cfg.get("metrics"):
+        for item in train_args.get("metrics"):
             metric_params = item.get("params", None)
             metric = cls.METRICS.get(item.get("name"))
             if metric_params: metric = metric(**metric_params)
@@ -133,8 +137,41 @@ class Cfg:
         return run_id, logdir
 
     @staticmethod
-    def get_classes(cfg: dict):
-        return cfg.get("dataset").get("classes")
+    def train(cfg: dict, model, train_gen, val_gen):
+        print("Training %s model" % model.name)
+
+        if isinstance(model, keras.Model):
+            max_epochs     = Cfg.get_max_epochs(cfg)
+            lr_scheduler   = Cfg.get_lr_scheduler(cfg)
+            run_id, logdir = Cfg.get_id_logdir(cfg)
+            tensorboard    = Cfg.get_tensorboard(logdir)
+
+            callbacks = [
+                lr_scheduler,
+                tensorboard
+            ]
+
+            optimizer = Cfg.get_optimizer(cfg=cfg)
+            loss      = Cfg.get_loss(cfg=cfg)
+            metrics   = Cfg.get_metrics(cfg=cfg)
+
+            model.compile(
+                optimizer=optimizer,
+                loss=loss,
+                metrics = metrics
+            )
+
+            model.fit(
+                train_gen,
+                epochs=max_epochs,
+                callbacks=callbacks,
+                validation_data=val_gen
+            )
+        else:
+            if isinstance(model, CustomPCA):
+                model.fit(train_gen=train_gen)
+
+    #! evaluate function
     
 
     @classmethod
