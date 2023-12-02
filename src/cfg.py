@@ -130,21 +130,24 @@ class Cfg:
         return keras.callbacks.TensorBoard(log_dir=logdir)
 
     @staticmethod
-    def get_id_logdir(cfg: dict):
+    def get_runid(cfg: dict):
         training_name = cfg.get("name")
-        run_id        = time.strftime("{}_%Y_%m_%d-%H_%M_%S".format(training_name))
-        logdir        = os.path.join("./logs/", run_id)
-        return run_id, logdir
-
+        runid         = time.strftime("{}_%Y_%m_%d-%H_%M_%S".format(training_name))
+        return runid
+    
     @staticmethod
-    def train(cfg: dict, model, train_gen, val_gen):
+    def get_logdir(runid: str):
+        return os.path.join("./logs/", runid)
+        
+    @staticmethod
+    def train(cfg: dict, model, train_gen, val_gen, runid):
         print("Training %s model" % model.name)
 
         if isinstance(model, keras.Model):
-            max_epochs     = Cfg.get_max_epochs(cfg)
-            lr_scheduler   = Cfg.get_lr_scheduler(cfg)
-            run_id, logdir = Cfg.get_id_logdir(cfg)
-            tensorboard    = Cfg.get_tensorboard(logdir)
+            max_epochs   = Cfg.get_max_epochs(cfg)
+            lr_scheduler = Cfg.get_lr_scheduler(cfg)
+            logdir       = Cfg.get_logdir(runid)
+            tensorboard  = Cfg.get_tensorboard(logdir)
 
             callbacks = [
                 lr_scheduler,
@@ -172,13 +175,13 @@ class Cfg:
                 model.fit(train_gen=train_gen)
 
     @staticmethod
-    def evaluate(model, test_gen):
+    def evaluate(model, test_gen, runid):
         print("\nEvaluate %s model" % model.name)
         if isinstance(model, keras.Model):
             model.evaluate(test_gen)
         else:
             if isinstance(model, CustomPCA):
-                model.evaluate(test_gen)
+                model.evaluate(logdir="denoised_images/%s" % runid, generator=test_gen)
     
 
     @classmethod

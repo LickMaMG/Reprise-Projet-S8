@@ -63,3 +63,23 @@ class WarmupCosineSchedule(tf.keras.callbacks.LearningRateScheduler):
             lr = epoch*alpha + lr_start
         return lr
 
+class SaveDenoised:
+    def __init__(self, logdir: str, generator) -> None:
+        self.imgdir = os.path.join(logdir, "imgs")
+        self.generator = generator
+        self.batch_size = generator.batch_size
+
+        os.makedirs(self.imgdir, exist_ok=True)
+
+
+    def save_image(self, original_image, denoised_image, save_as: str):
+        fig, axes = plt.subplots(1, 2, figsize=(8,6))
+        ax1, ax2 = axes.ravel()
+        ax1.imshow(original_image, cmap="gray"); ax1.set_xticks([]); ax1.set_yticks([]); ax1.set_title("Original")
+        ax2.imshow(denoised_image, cmap="gray"); ax2.set_xticks([]); ax2.set_yticks([]); ax2.set_title("Denoised")
+        fig.savefig("%s/%s.jpg"% (self.imgdir, save_as))
+        plt.close()
+    
+    def __call__(self, bacth_num, noised, labels):
+        for i in range(self.batch_size):
+            self.save_image(noised[i], labels[i], "batch-%d-image-%d" % (bacth_num, i))

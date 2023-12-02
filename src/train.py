@@ -45,16 +45,17 @@ def main() -> None:
 
     model = Cfg.get_model(cfg=cfg)
 
+    runid = Cfg.get_runid(cfg=cfg)
+
     Cfg.train(
         cfg=cfg,
         model=model,
         train_gen=train_generator,
-        val_gen=val_generator
+        val_gen=val_generator,
+        runid=runid
     )
-    print(len(test_generator))
-    print(len(val_generator))
 
-    Cfg.evaluate(model, test_generator)
+    Cfg.evaluate(model, test_generator, runid)
     
     # Cfg.save_model(run_id=run_id, model=model)
 
