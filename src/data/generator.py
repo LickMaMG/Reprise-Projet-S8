@@ -54,11 +54,14 @@ class ImageDataGenerator(keras.utils.Sequence):
         
         # Generate data
         for i, (noised_filename, original_filename) in enumerate(list_files_temp):
-            noised_stent = cv2.imread(noised_filename, 0)
+            noised_stent   = cv2.imread(noised_filename, 0)
             original_stent = cv2.imread(original_filename, 0)
+
+            noised_stent   = cv2.resize(noised_stent, self.input_shape[:2])
+            original_stent = cv2.resize(original_stent, self.input_shape[:2])
             
             # Data augmentation
-            noised_stent = augmentor(image=noised_stent)
+            noised_stent, original_stent = augmentor(images=[noised_stent, original_stent])
             
             X[i,] = noised_stent.reshape(self.input_shape)
             y[i,] = original_stent.reshape(self.input_shape)
