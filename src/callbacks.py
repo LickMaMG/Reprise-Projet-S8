@@ -82,4 +82,4 @@ class SaveDenoised:
     
     def __call__(self, bacth_num, noised, labels):
         for i in range(self.batch_size):
-            self.save_image(noised[i], labels[i], "batch-%d-image-%d" % (bacth_num, i))
+            self.save_image(labels[i], noised[i], "batch-%d-image-%d" % (bacth_num, i))

@@ -1,6 +1,7 @@
 import os, cv2, uuid
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 from data.process import GaussianNoise
 
@@ -10,9 +11,13 @@ class NoiseData:
         self.num_images = num_images
         self.basedir    = basedir
 
+        total_images = num_images*9
+        data_name = "%d" % total_images if total_images < 1000 else "%dk" % (total_images//1000)
+
+
         self.stent_dir      = os.path.join(basedir, "stents")
-        self.savedir        = os.path.join(basedir, "data_n%d" % num_images)
-        self.annot_filename = os.path.join(basedir, "noise_annots_n%d.txt" % num_images)
+        self.savedir        = os.path.join(basedir, "data_%s" % data_name)
+        self.annot_filename = os.path.join(basedir, "noise_annots_%s.txt" % data_name)
 
         os.makedirs(self.savedir, exist_ok=True)
         self.create_data()
@@ -25,7 +30,7 @@ class NoiseData:
         for entry in os.scandir(self.stent_dir):
             stent_name = entry.name
             stent = cv2.imread(entry.path, 0) / 255.
-            for scale in np.linspace(0.3, 0.5, self.num_images):
+            for scale in tqdm(np.linspace(0.3, 0.5, self.num_images)):
                 noised_filename   = str(uuid.uuid4()).split('-')[0]
                 noised_filename   = os.path.join(self.savedir, "%s.jpg" % noised_filename)
                 original_filename = os.path.join(self.stent_dir, stent_name)
