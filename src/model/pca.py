@@ -35,26 +35,26 @@ class CustomPCA:
                 metrics_mean_val[j][1] = sum(metrics_val[j][1])/len(metrics_val[j][1])
             
             self.prog.update(i+1, values=metrics_mean_val)
-            
-
         
-    # def evaluate(self, generator):
-    #     metrics_val = [("test_"+m.name, 0) for m in self.metrics]
-    #     for i, (batch , labels) in enumerate(generator):
-    #         reduced = self.pca.transform(batch.reshape(generator.batch_size, -1))
-    #         denoised = self.pca.inverse_transform(reduced).reshape(generator.batch_size, *batch[0].shape[:2])
-    #         y_true = labels.reshape(generator.batch_size, -1)
-    #         y_pred = denoised.reshape(generator.batch_size, -1)
+    def evaluate(self, generator):
+        metrics_val = [[m.name, 0] for m in self.metrics]
+        for i, (batch , labels) in enumerate(generator):
+            reduced = self.pca.transform(batch.reshape(generator.batch_size, -1))
+            denoised = self.pca.inverse_transform(reduced).reshape(generator.batch_size, *batch[0].shape[:2])
+            y_true = labels.reshape(generator.batch_size, -1)
+            y_pred = denoised.reshape(generator.batch_size, -1)
 
-    #         y_true = labels.reshape(generator.batch_size, -1)
-    #         y_pred = denoised.reshape(generator.batch_size, -1)
+            y_true = labels.reshape(generator.batch_size, -1)
+            y_pred = denoised.reshape(generator.batch_size, -1)
 
-    #         for i, m in enumerate(self.metrics):
-    #             metrics_val[i][0] += m(y_true, y_pred)
+            for i, m in enumerate(self.metrics):
+                metrics_val[i][1] += m(y_true, y_pred)
+        
+        metrics_val = [(name, val/len(generator)) for name,val in metrics_val]
             
-    #     metrics_val = []
-
-    #     print()
+        # metrics_val = []
+        for name, val in metrics_val:
+            print(name.ljust(10) + " : %.2f" % val)
 
 
 

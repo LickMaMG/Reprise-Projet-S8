@@ -37,6 +37,11 @@ def main() -> None:
         cfg=cfg,
         annots=annots["val"],
     )
+    
+    test_generator = Cfg.get_generator(
+        cfg=cfg,
+        annots=annots["test"],
+    )
 
     model = Cfg.get_model(cfg=cfg)
 
@@ -46,6 +51,10 @@ def main() -> None:
         train_gen=train_generator,
         val_gen=val_generator
     )
+    print(len(test_generator))
+    print(len(val_generator))
+
+    Cfg.evaluate(model, test_generator)
     
     # Cfg.save_model(run_id=run_id, model=model)
 

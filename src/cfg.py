@@ -171,7 +171,14 @@ class Cfg:
             if isinstance(model, CustomPCA):
                 model.fit(train_gen=train_gen)
 
-    #! evaluate function
+    @staticmethod
+    def evaluate(model, test_gen):
+        print("\nEvaluate %s model" % model.name)
+        if isinstance(model, keras.Model):
+            model.evaluate(test_gen)
+        else:
+            if isinstance(model, CustomPCA):
+                model.evaluate(test_gen)
     
 
     @classmethod
