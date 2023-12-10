@@ -1,38 +1,24 @@
+# .PHONY: help tensorboard script-create-stents script-create-dataset train
+
+# help:
+# 	@./help.sh "$(MAKEFILE_LIST)"
+
 help:
-	@echo "Commands:"
-	@echo
+	@echo ""
 
 
-
-
-# Conda environments
-
-# create:
-# 	@conda env create --prefix ./env --file tf.yml
-
-# activate-env:
-# 	@source /home/malick/miniconda3/condabin/conda/bin/activate /home/malick/Desktop/kss/env
-
-# remove-env:
-# 	@conda remove --prefix ./env --all -y
-
-# Tensorboard
-tensorboard:
-	tensorboard --logdir logs --port 6006
-
-# all scripts
-
-script-create-stents:
+script-create-stents: ## Read .raw file and create images of 9 stents
 	@python scripts/make_stents.py
 
-script-create-dataset:
+script-create-dataset: ## Create dataset of noised stents ### - num : num of desc
 	@python scripts/create_dataset.py \
-	--basedir dataset \
-	--num-images $(num)
+		--basedir dataset \
+		--num-images $(num)
 
-# Train
-
-train:
+train: ## Train a model using config files ### - cfg : config file
 	@python ./src/train.py \
-	--cfg $(cfg)
-	
+		--cfg $(cfg)
+
+tensorboard: ## Run tensorboard
+	tensorboard --logdir logs --port 6006
+
