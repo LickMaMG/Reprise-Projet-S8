@@ -6,7 +6,7 @@ from tensorflow import keras
 from sklearn.model_selection import train_test_split
 
 from model.unet import Unet
-from model.pca import CustomPCA
+# from model.pca import CustomPCA
 from metrics import PeakSignalNoiseRatio
 from data.generator import ImageDataGenerator
 from callbacks import ExpSchedule, WarmupCosineSchedule, CosineSchedule
@@ -22,7 +22,7 @@ class Cfg:
 
     MODELS = {
         "unet": Unet,
-        "pca": CustomPCA,
+        # "pca": CustomPCA,
     }
 
     LOSSES = {
@@ -38,7 +38,7 @@ class Cfg:
 
     METRICS = {
         "mae":"mae",
-        "psnr":"PeakSignalNoiseRatio" #! implement
+        "psnr": PeakSignalNoiseRatio
     }
 
     SCHEDULERS = {
@@ -99,7 +99,8 @@ class Cfg:
         params     = train_args.get("loss").get("params", None)
         loss       = cls.LOSSES.get(name)
         if params: loss = loss(**params)
-        return  loss
+        if isinstance(loss, str): return loss
+        else: return  loss()
     
 
     @classmethod
@@ -110,7 +111,8 @@ class Cfg:
             metric_params = item.get("params", None)
             metric = cls.METRICS.get(item.get("name"))
             if metric_params: metric = metric(**metric_params)
-            metrics.append(metric)
+            if isinstance(metric, str): metrics.append(metric)
+            else: metrics.append(metric())
         return metrics
 
     @staticmethod
@@ -122,10 +124,12 @@ class Cfg:
     @classmethod
     def get_lr_scheduler(cls, cfg: dict):
         training_params     = cfg.get("training")
-        lr_scheluder_name   = training_params.get("lr_scheduler").get("name")
-        lr_scheluder_params = training_params.get("lr_scheduler").get("params")
-        lr_scheluder        = cls.SCHEDULERS.get(lr_scheluder_name)(**lr_scheluder_params)
-        return lr_scheluder
+        try:
+            lr_scheluder_name   = training_params.get("lr_scheduler").get("name")
+            lr_scheluder_params = training_params.get("lr_scheduler").get("params")
+            lr_scheluder        = cls.SCHEDULERS.get(lr_scheluder_name)(**lr_scheluder_params)
+            return lr_scheluder
+        except: return
 
     @staticmethod
     def get_tensorboard(logdir: str):
@@ -140,51 +144,6 @@ class Cfg:
     @staticmethod
     def get_logdir(runid: str):
         return os.path.join("./logs/", runid)
-        
-    @staticmethod
-    def train(cfg: dict, model, train_gen, val_gen, runid):
-        print("Training %s model" % model.name)
-
-        if isinstance(model, keras.Model):
-            max_epochs   = Cfg.get_max_epochs(cfg)
-            lr_scheduler = Cfg.get_lr_scheduler(cfg)
-            logdir       = Cfg.get_logdir(runid)
-            tensorboard  = Cfg.get_tensorboard(logdir)
-
-            callbacks = [
-                lr_scheduler,
-                tensorboard
-            ]
-
-            optimizer = Cfg.get_optimizer(cfg=cfg)
-            loss      = Cfg.get_loss(cfg=cfg)
-            metrics   = Cfg.get_metrics(cfg=cfg)
-
-            model.compile(
-                optimizer=optimizer,
-                loss=loss,
-                metrics = metrics
-            )
-
-            model.fit(
-                train_gen,
-                epochs=max_epochs,
-                callbacks=callbacks,
-                validation_data=val_gen
-            )
-        else:
-            if isinstance(model, CustomPCA):
-                model.fit(train_gen=train_gen)
-
-    @staticmethod
-    def evaluate(model, test_gen, runid):
-        print("\nEvaluate %s model" % model.name)
-        if isinstance(model, keras.Model):
-            model.evaluate(test_gen)
-        else:
-            if isinstance(model, CustomPCA):
-                model.evaluate(logdir="denoised_images/%s" % runid, generator=test_gen)
-    
 
     @classmethod
     def save_model(cls, run_id, model):

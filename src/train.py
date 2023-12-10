@@ -6,10 +6,7 @@ from argparse import ArgumentParser
 from keras.optimizers import Adam
 
 from cfg import Cfg
-
-import tensorflow as tf
-import seaborn as sns
-import matplotlib.pyplot as plt
+from callbacks import SaveDenoised
 
 def main() -> None:
 
@@ -44,18 +41,41 @@ def main() -> None:
     )
 
     model = Cfg.get_model(cfg=cfg)
-
     runid = Cfg.get_runid(cfg=cfg)
 
-    Cfg.train(
-        cfg=cfg,
-        model=model,
-        train_gen=train_generator,
-        val_gen=val_generator,
-        runid=runid
+    print("Training %s model" % model.name)
+
+    max_epochs   = Cfg.get_max_epochs(cfg)
+    lr_scheduler = Cfg.get_lr_scheduler(cfg)
+    logdir       = Cfg.get_logdir(runid)
+    tensorboard  = Cfg.get_tensorboard(logdir)
+    
+    callbacks = [
+        tensorboard,
+        SaveDenoised(logdir=logdir+"/validation", generator=val_generator)
+    ]
+    
+    if lr_scheduler is not None: callbacks.append(lr_scheduler)
+    
+    optimizer = Cfg.get_optimizer(cfg=cfg)
+    loss      = Cfg.get_loss(cfg=cfg)
+    metrics   = Cfg.get_metrics(cfg=cfg)
+
+    
+    model.compile(
+        optimizer=optimizer,
+        loss=loss,
+        metrics=metrics
+    )
+    
+    model.fit(
+        train_generator,
+        epochs=max_epochs,
+        callbacks=callbacks,
+        validation_data=val_generator
     )
 
-    Cfg.evaluate(model, test_generator, runid)
+    model.evaluate(test_generator)
     
     # Cfg.save_model(run_id=run_id, model=model)
 
