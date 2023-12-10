@@ -16,8 +16,8 @@ class NoiseData:
 
 
         self.stent_dir      = os.path.join(basedir, "stents")
-        self.savedir        = os.path.join(basedir, "data_%s" % data_name)
-        self.annot_filename = os.path.join(basedir, "noise_annots_%s.txt" % data_name)
+        self.savedir        = os.path.join(basedir, "data-%s" % data_name)
+        self.annot_filename = os.path.join(basedir, "noise-annots-%s.txt" % data_name)
 
         os.makedirs(self.savedir, exist_ok=True)
         self.create_data()

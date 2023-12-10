@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 class Stents:
     filename = "dataset/CDStent.raw"
     savedir  = "dataset/stents"
-    shape    = (256, 256)
+    shape    = (224, 224)
 
     def __init__(self) -> None:
         content = self.read_raw()
