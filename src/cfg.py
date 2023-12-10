@@ -4,10 +4,12 @@ TackleWarnings()
 import time, os
 from tensorflow import keras
 from sklearn.model_selection import train_test_split
-from callbacks import ExpSchedule, WarmupCosineSchedule, CosineSchedule
-# from model.unet import Unet
+
+from model.unet import Unet
 from model.pca import CustomPCA
+from metrics import PeakSignalNoiseRatio
 from data.generator import ImageDataGenerator
+from callbacks import ExpSchedule, WarmupCosineSchedule, CosineSchedule
 
 
 class Cfg:
@@ -19,7 +21,7 @@ class Cfg:
     }
 
     MODELS = {
-        "unet": "Unet", #! impelment
+        "unet": Unet,
         "pca": CustomPCA,
     }
 
