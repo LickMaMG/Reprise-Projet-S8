@@ -17,7 +17,7 @@ class DataAugmentor:
         transformer = alb.Compose([
             alb.HorizontalFlip(p=0.5),
             alb.CenterCrop(width-width//10, width-width//10, p=0.5),
-            alb.Rotate(limit=360, p=1),
+            alb.Rotate(limit=360, border_mode=1),
             alb.Resize(*initial_shape, p=1)
         ], additional_targets={"image":"image", "image1":"image"}, p=1)
 
