@@ -63,23 +63,42 @@ class WarmupCosineSchedule(tf.keras.callbacks.LearningRateScheduler):
             lr = epoch*alpha + lr_start
         return lr
 
-class SaveDenoised:
+class SaveDenoised(keras.callbacks.Callback):
     def __init__(self, logdir: str, generator) -> None:
+
+        super().__init__()
         self.imgdir = os.path.join(logdir, "imgs")
         self.generator = generator
         self.batch_size = generator.batch_size
+        self.writer = tf.summary.create_file_writer(logdir)
 
         os.makedirs(self.imgdir, exist_ok=True)
 
 
-    def save_image(self, original_image, denoised_image, save_as: str):
-        fig, axes = plt.subplots(1, 2, figsize=(8,6))
-        ax1, ax2 = axes.ravel()
-        ax1.imshow(original_image, cmap="gray"); ax1.set_xticks([]); ax1.set_yticks([]); ax1.set_title("Original")
-        ax2.imshow(denoised_image, cmap="gray"); ax2.set_xticks([]); ax2.set_yticks([]); ax2.set_title("Denoised")
-        fig.savefig("%s/%s.jpg"% (self.imgdir, save_as))
-        plt.close()
-    
-    def __call__(self, bacth_num, noised, labels):
+    def save_image(self, noised, denoised, save_as: str):
+        fig, axes = plt.subplots(2, 4, figsize=(8,6))
+        axes = axes.ravel()
         for i in range(self.batch_size):
-            self.save_image(labels[i], noised[i], "batch-%d-image-%d" % (bacth_num, i))
+            axes[i*2].imshow(noised[i], cmap="gray"); axes[i*2].set_xticks([]); axes[i*2].set_yticks([]); axes[i*2].set_title("Noised")
+            axes[i*2+1].imshow(denoised[i], cmap="gray"); axes[i*2+1].set_xticks([]); axes[i*2+1].set_yticks([]); axes[i*2+1].set_title("Denoised")
+        
+        return self.figure_to_tf_image(fig, save_to=f"{self.imgdir}/{save_as}.png")
+    
+    def on_epoch_end(self, epoch, logs=None):
+        noised, _  = self.generator[0]
+        denoised = self.model(noised, training=False)
+        img = self.save_image(noised, denoised, f"{epoch}")
+        with self.writer.as_default():
+            tf.summary.image("Denoised", [img], step=epoch)
+        
+
+    @staticmethod
+    def figure_to_tf_image(fig: Figure, save_to: str):
+        buf = io.BytesIO()
+        plt.savefig(buf, dpi=128, format="png")
+        plt.close(fig)
+        val = buf.getvalue()
+        with open(save_to, 'wb') as f:
+            f.write(val)
+        image = tf.image.decode_png(buf.getvalue(), channels=4)
+        return image
