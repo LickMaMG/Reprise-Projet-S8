@@ -96,7 +96,8 @@ class Cfg:
             params = item.get("params", None)
             loss = cls.LOSSES.get(item.get("name"))
             if params is not None: loss = loss(**params)
-            losses.append(loss)
+            if isinstance(loss, str): losses.append(loss)
+            else: losses.append(loss())
         return losses
     
     @classmethod
@@ -108,7 +109,9 @@ class Cfg:
                 params = item.get("params", None)
                 metric = cls.METRICS.get(item.get("name"))
                 if params is not None: metric = metric(**params)
-                metrics.append(metric)
+                if isinstance(metric, str): metrics.append(metric)
+                else: metrics.append(metric())
+                
         return metrics
 
     @classmethod
