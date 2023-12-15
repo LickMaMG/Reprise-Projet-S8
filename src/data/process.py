@@ -7,6 +7,12 @@ class Normalize:
     def __new__(cls, image: np.ndarray, **kwargs)-> np.ndarray:
         return image.astype(np.float32)/255.
 
+class TwoNormalize:
+    "??? description"
+
+    def __new__(cls, sequence: list[np.ndarray], **kwargs) -> list[np.ndarray]:
+        return [Normalize(frame, **kwargs) for frame in sequence]
+
 class GaussianNoise:
     def __new__(cls, image: np.ndarray, **kwargs)-> np.ndarray:
         scale = kwargs.get("scale")

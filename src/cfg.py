@@ -9,7 +9,7 @@ from model.unet import Unet
 # from model.pca import CustomPCA
 from metrics import PeakSignalNoiseRatio
 from data.generator import ImageDataGenerator
-from callbacks import ExpSchedule, WarmupCosineSchedule, CosineSchedule
+from callbacks import ExpSchedule, WarmupCosineSchedule, CosineSchedule, SaveDenoised
 
 
 class Cfg:
@@ -48,6 +48,10 @@ class Cfg:
         "ExpSchedule":          ExpSchedule,
         "WarmupCosineSchedule": WarmupCosineSchedule,
         "CosineSchedule":       CosineSchedule,
+    }
+
+    CALLBACKS = {
+        "savedenoised": SaveDenoised
     }
 
     @classmethod
@@ -128,11 +132,13 @@ class Cfg:
     
     @classmethod
     def get_lr_scheduler(cls, cfg: dict):
-        train_args   = cfg.get("training")
-        name         = train_args.get("lr_scheduler").get("name")
-        params       = train_args.get("lr_scheduler").get("params")
-        lr_scheluder = cls.SCHEDULERS.get(name)(**params)
-        return lr_scheluder
+        scheduler_args = cfg.get("training").get("lr_scheduler")
+        if scheduler_args is None: return []
+        else:
+            name         = scheduler_args.get("name")
+            params       = scheduler_args.get("params")
+            lr_scheluder = cls.SCHEDULERS.get(name)(**params)
+            return [lr_scheluder]
 
     @staticmethod
     def get_tensorboard(logdir: str):
