@@ -30,7 +30,7 @@ class NoiseData:
         for entry in os.scandir(self.stent_dir):
             stent_name = entry.name
             stent = cv2.imread(entry.path, 0) / 255.
-            for scale in tqdm(np.linspace(0.3, 0.5, self.num_images)):
+            for scale in tqdm(np.linspace(0.3, 0.5, self.num_images), desc="Adding noise for %s" % entry.name):
                 noised_filename   = str(uuid.uuid4()).split('-')[0]
                 noised_filename   = os.path.join(self.savedir, "%s.jpg" % noised_filename)
                 original_filename = os.path.join(self.stent_dir, stent_name)
