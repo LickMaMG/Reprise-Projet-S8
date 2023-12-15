@@ -1,17 +1,15 @@
-from tensorflow import keras
 import tensorflow as tf
-from keras.metrics import mean_squared_error
 import numpy as np
 
 class MSE:
     name="mse"
     def __call__(self, y_true, y_pred):
-        return np.mean(mean_squared_error(y_true, y_pred))
+        return np.mean(tf.keras.metrics.mean_squared_error(y_true, y_pred))
 
-class PeakSignalNoiseRatio(keras.metrics.Metric):
-    def __init__(self, name="psnr", max_pixel=255, **kwargs):
+class PeakSignalNoiseRatio(tf.keras.metrics.Metric):
+    def __init__(self, name="psnr", max_pixel=1., **kwargs):
         super(PeakSignalNoiseRatio, self).__init__(name=name, **kwargs)
-        self.max_pixel = max_pixel
+        self.max_pixel = tf.constant(max_pixel, dtype=tf.float32)
         self.mse = self.add_weight("mse", initializer="zeros")
         self.total = self.add_weight("total", initializer="zeros")
     
@@ -28,17 +26,17 @@ class PeakSignalNoiseRatio(keras.metrics.Metric):
         self.total.assign_add(batch_size)
     
     def result(self):
-        psnr = 10. * tf.math.log(tf.square(self.max_pixel**2 / self.mse)) / self.total / tf.math.log(10.)
+        psnr = 10. * tf.math.log(self.max_pixel**2 / self.mse) / tf.math.log(10.) / self.total
 
         self.mse.assign(0)
         self.total.assign(0)
 
         return psnr
 
-    @property
-    def variables(self):
-        # Return the variables as a list
-        return [self.mse, self.total]
+    # @property
+    # def variables(self):
+    #     # Return the variables as a list
+    #     return [self.mse, self.total]
 
     # def get_config(self):
     #     base_config = super().get_config()
@@ -47,5 +45,5 @@ class PeakSignalNoiseRatio(keras.metrics.Metric):
     # @classmethod
     # def from_config(cls, config):
     #     sublayer_config = config.pop("max_pixel")
-    #     sublayer = keras.saving.deserialize_keras_object(sublayer_config)
+    #     sublayer = tf.keras.saving.deserialize_tf.keras_object(sublayer_config)
     #     return cls(sublayer, **config)
