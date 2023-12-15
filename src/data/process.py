@@ -1,16 +1,27 @@
 import numpy as np
 import albumentations as alb
 
+class Normalize:
+    "??? description"
+
+    def __new__(cls, image: np.ndarray, **kwargs)-> np.ndarray:
+        return image.astype(np.float32)/255.
+
 class GaussianNoise:
-    
-    def __call__(self, image: np.ndarray, scale: float = None) -> np.ndarray:
-        # scale = np.random.uniform(0.01, 0.5)
+    def __new__(cls, image: np.ndarray, **kwargs)-> np.ndarray:
+        scale = kwargs.get("scale")
         noise = np.random.normal(loc=0, scale=scale, size=image.shape[:2])
         return noise + image
 
-class DataAugmentor:
+
+class ImageAugmentation:
+    p = 0.1
+    def __new__(cls, image: list[np.ndarray], **kwargs) -> list[np.ndarray]:
+        return cls.__transform(image=image, **kwargs)
     
-    def __call__(self, images: np.ndarray) -> np.ndarray:
+    @classmethod
+    def __transform(cls, images, **kwargs):
+        # Return an augmentation
         initial_shape = images[0].shape[:2]
         width = initial_shape[0]
         kwargs = {"image": images[0], "image1": images[1]}
