@@ -2,16 +2,14 @@ import numpy as np
 import albumentations as alb
 
 class Normalize:
-    "??? description"
 
     def __new__(cls, image: np.ndarray, **kwargs)-> np.ndarray:
         return image.astype(np.float32)/255.
 
 class TwoNormalize:
-    "??? description"
 
-    def __new__(cls, sequence: list[np.ndarray], **kwargs) -> list[np.ndarray]:
-        return [Normalize(frame, **kwargs) for frame in sequence]
+    def __new__(cls, images: list[np.ndarray]) -> list[np.ndarray]:
+        return [Normalize(img) for img in images]
 
 class GaussianNoise:
     def __new__(cls, image: np.ndarray, **kwargs)-> np.ndarray:
@@ -22,8 +20,8 @@ class GaussianNoise:
 
 class ImageAugmentation:
     p = 0.1
-    def __new__(cls, image: list[np.ndarray], **kwargs) -> list[np.ndarray]:
-        return cls.__transform(image=image, **kwargs)
+    def __new__(cls, images: list[np.ndarray], **kwargs) -> list[np.ndarray]:
+        return cls.__transform(images=images, **kwargs)
     
     @classmethod
     def __transform(cls, images, **kwargs):

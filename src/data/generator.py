@@ -5,13 +5,13 @@ from itertools import islice
 from tensorflow import keras
 from typing import List, Tuple
 
-from data.process import Normalize, ImageAugmentation
+from data.process import TwoNormalize, ImageAugmentation
 
 class ImageDataGenerator(keras.utils.Sequence):
 
     transformations = {
         "Augmentation": ImageAugmentation,
-        "Normalize": Normalize,
+        "Normalize": TwoNormalize,
     }
 
     def __init__(
@@ -19,12 +19,14 @@ class ImageDataGenerator(keras.utils.Sequence):
             annots_file: str,
             batch_size: int,
             input_shape: tuple,
+            pipeline: dict, 
             shuffle: bool = True,
     ):
         self.batch_size   = batch_size
         self.input_shape  = tuple(input_shape)
         self.annots_file  = annots_file
         self.shuffle      = shuffle
+        self.pipeline     = pipeline
 
         self.__get_annots()
         self.on_epoch_end()
@@ -75,15 +77,15 @@ class ImageDataGenerator(keras.utils.Sequence):
         total_lines = sum(1 for line in open(self.annots_file))
         with open(self.annots_file, 'r') as file:
             for line in tqdm(islice(file, None), total=total_lines, desc="Reading %s" % self.annots_file.split('/')[-1]):
-                filename, valence, arousal  = line.split()
+                noised_filename, original_filename, _  = line.split(', ')
                 self.list_annots.append([
-                    filename, float(valence), float(arousal)
+                    noised_filename, original_filename
                 ])
     
-    def __transform(self, image: np.ndarray) -> np.ndarray:
+    def __transform(self, images: tuple[np.ndarray]) -> tuple[np.ndarray]:
         for operation in self.pipeline:
             name   = operation.get("name")
             params = operation.get("params", {})
             transformer = self.transformations.get(name)
-            image = transformer(image=image, **params)
+            image = transformer(images=images, **params)
         return image
