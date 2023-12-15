@@ -28,16 +28,19 @@ class Cfg:
     LOSSES = {
         "categorical_crossentropy":        "categorical_crossentropy",
         "sparse_categorical_crossentropy": "sparse_categorical_crossentropy",
-        "mse": "mse"
+        "mse": "mse",
+        "mae": "mae",
     }
 
 
     OPTIMIZERS = {
-        "adam": "adam",
+        "adam": keras.optimizers.Adam,
+        "sgd": keras.optimizers.SGD,
     }
 
     METRICS = {
         "mae":"mae",
+        "mse":"mse",
         "psnr": PeakSignalNoiseRatio
     }
 
@@ -47,93 +50,100 @@ class Cfg:
         "CosineSchedule":       CosineSchedule,
     }
 
-
     @classmethod
-    def get_generator(cls, cfg: dict, annots: list):
+    def get_data(cls, cfg: dict):
         name   = cfg.get("dataset").get("name")
         params = cfg.get("dataset").get("params")
-        return  cls.DATASETS.get(name)(
-            list_files = annots,
-            **params
-        )
+        return cls.DATASETS.get(name)(**params)()
     
-    @staticmethod
-    def get_annots(cfg: dict):
-        annot_filename = cfg.get("dataset").get("annot_filename")
-        with open(annot_filename) as file:
-            annots = file.read().split("\n")
-        annots = [line.split(', ')[:2] for line in annots if len(line)>0]
-        
-        train_annots, test_annots = train_test_split(annots, test_size=0.2, random_state=Cfg.SEED)
-        val_annots, test_annots   = train_test_split(test_annots, test_size=0.5, random_state=Cfg.SEED)
-
-        annots = {
-            "train": train_annots,
-            "val":   val_annots,
-            "test":  test_annots,
-        }
-
-        return annots
+    @classmethod
+    def get_generator(cls, cfg: dict, set_type: str):
+        data_args = cfg.get("dataset")
+        name   = data_args.get("name")
+        params = data_args.get("params")
+        params["annots_file"] = data_args.get("annots_files").get(set_type)
+        if "pipelines" in data_args:
+            params["pipeline"] = data_args.get("pipelines").get(set_type)
+        return  cls.DATASETS.get(name)(**params)
 
     @classmethod
     def get_model(cls, cfg: dict):
-        model_name    = cfg.get("model").get("name")
-        model_params  = cfg.get("model").get("params")
-        model         = cls.MODELS.get(model_name)(**model_params)
+        name   = cfg.get("model").get("name")
+        params = cfg.get("model").get("params")
+        model  = cls.MODELS.get(name)(**params)
         return model
 
     @classmethod
     def get_optimizer(cls, cfg: dict):
-        train_args = cfg.get("training")
-        name       = train_args.get("optimizer").get("name")
-        params     = train_args.get("optimizer").get("params", None)
+        opt_args = cfg.get("training").get("optimizer")
+        name       = opt_args.get("name")
+        params     = opt_args.get("params", None)
         optimizer  = cls.OPTIMIZERS.get(name)
-        if params: optimizer = optimizer(**params)
+        if params is not None: optimizer = optimizer(**params)
 
         return optimizer
     
+    
     @classmethod
     def get_loss(cls, cfg: dict):
-        train_args = cfg.get("training")
-        name       = train_args.get("loss").get("name")
-        params     = train_args.get("loss").get("params", None)
-        loss       = cls.LOSSES.get(name)
-        if params: loss = loss(**params)
-        if isinstance(loss, str): return loss
-        else: return  loss()
+        loss_args = cfg.get("training").get("loss")
+        losses = []
+        for item in loss_args:
+            params = item.get("params", None)
+            loss = cls.LOSSES.get(item.get("name"))
+            if params is not None: loss = loss(**params)
+            losses.append(loss)
+        return losses
     
-
     @classmethod
     def get_metrics(cls, cfg: dict):
-        train_args = cfg.get("training")
+        metric_args = cfg.get("training").get("metrics")
         metrics = []
-        for item in train_args.get("metrics"):
-            metric_params = item.get("params", None)
-            metric = cls.METRICS.get(item.get("name"))
-            if metric_params: metric = metric(**metric_params)
-            if isinstance(metric, str): metrics.append(metric)
-            else: metrics.append(metric())
+        if metric_args is not None:
+            for item in metric_args:
+                params = item.get("params", None)
+                metric = cls.METRICS.get(item.get("name"))
+                if params is not None: metric = metric(**params)
+                metrics.append(metric)
         return metrics
+
+    @classmethod
+    def get_custom_callbacks(cls, cfg: dict, logdir, val_generator):
+        callbacks = []
+        custom_callbacks = cfg.get("training").get("custom_callbacks")
+        if custom_callbacks is not None:
+            for item in custom_callbacks:
+                name = item.get("name")
+                callback = cls.CALLBACKS.get(name)
+                callbacks.append(
+                    callback(logdir=logdir, val_generator=val_generator)
+                )
+        return callbacks
 
     @staticmethod
     def get_max_epochs(cfg: dict):
-        training_params = cfg.get("training")
-        max_epochs      = training_params.get("epochs")
+        train_args = cfg.get("training")
+        max_epochs = train_args.get("epochs")
         return max_epochs
     
     @classmethod
     def get_lr_scheduler(cls, cfg: dict):
-        training_params     = cfg.get("training")
-        try:
-            lr_scheluder_name   = training_params.get("lr_scheduler").get("name")
-            lr_scheluder_params = training_params.get("lr_scheduler").get("params")
-            lr_scheluder        = cls.SCHEDULERS.get(lr_scheluder_name)(**lr_scheluder_params)
-            return lr_scheluder
-        except: return
+        train_args   = cfg.get("training")
+        name         = train_args.get("lr_scheduler").get("name")
+        params       = train_args.get("lr_scheduler").get("params")
+        lr_scheluder = cls.SCHEDULERS.get(name)(**params)
+        return lr_scheluder
 
     @staticmethod
     def get_tensorboard(logdir: str):
         return keras.callbacks.TensorBoard(log_dir=logdir)
+
+    @staticmethod
+    def get_id_logdir(cfg: dict):
+        train_name = cfg.get("name")
+        run_id     = time.strftime("{}_%Y_%m_%d-%H_%M_%S".format(train_name))
+        logdir     = os.path.join("./logs/", run_id)
+        return run_id, logdir
 
     @staticmethod
     def get_runid(cfg: dict):
