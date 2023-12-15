@@ -64,12 +64,12 @@ class WarmupCosineSchedule(tf.keras.callbacks.LearningRateScheduler):
         return lr
 
 class SaveDenoised(keras.callbacks.Callback):
-    def __init__(self, logdir: str, generator) -> None:
+    def __init__(self, logdir: str, val_generator) -> None:
 
         super().__init__()
         self.imgdir = os.path.join(logdir, "imgs")
-        self.generator = generator
-        self.batch_size = generator.batch_size
+        self.val_generator = val_generator
+        self.batch_size = val_generator.batch_size
         self.writer = tf.summary.create_file_writer(logdir)
 
         os.makedirs(self.imgdir, exist_ok=True)
@@ -85,7 +85,7 @@ class SaveDenoised(keras.callbacks.Callback):
         return self.figure_to_tf_image(fig, save_to=f"{self.imgdir}/{save_as}.png")
     
     def on_epoch_end(self, epoch, logs=None):
-        noised, _  = self.generator[0]
+        noised, _  = self.val_generator[0]
         denoised = self.model(noised, training=False)
         img = self.save_image(noised, denoised, f"{epoch}")
         with self.writer.as_default():
