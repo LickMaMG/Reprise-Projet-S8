@@ -19,5 +19,7 @@ __pycache__/
 *ipynb
 
 # logs
-
 logs/
+
+# models
+models/

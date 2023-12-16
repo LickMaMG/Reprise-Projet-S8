@@ -1,10 +1,9 @@
-from utils import TackleWarnings
-TackleWarnings()
+import os, sys; sys.path.append("./")
 
 import yaml, random, argparse
 from argparse import ArgumentParser
 
-from cfg import Cfg
+from src.cfg import Cfg
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Train a model with hybrid configuration.")
@@ -97,15 +96,17 @@ def main() -> None:
     )
 
     print("\nEvaluation ...")
+    content = "\n"
     evaluations = model.evaluate(test_generator)
     for i, metric in enumerate(loss + metrics):
         if not isinstance(metric, str): metric = metric.name
-        print("%s : %.3f" % (metric.ljust(4), evaluations[i]))
+        content += "%s : %.3f\n" % (metric.ljust(4), evaluations[i])
+    print(content)
+
+    with open(os.path.join(logdir, "evaluation.txt"), 'w') as file: file.write(content)
     
     Cfg.save_model(run_id=run_id, model=model)
     Cfg.test(run_id=run_id, model=model, test_gen=test_generator)
 
-
-    
 if __name__ == "__main__":
     main()
