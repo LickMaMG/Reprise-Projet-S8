@@ -2,6 +2,7 @@ from utils import TackleWarnings
 TackleWarnings()
 
 import time, os
+import matplotlib.pyplot as plt
 from tensorflow import keras
 from sklearn.model_selection import train_test_split
 
@@ -172,5 +173,21 @@ class Cfg:
         model_filename = os.path.join(model_folder, run_id)
         model.save_weights(model_filename)
 
+    @classmethod
+    def test(cls, run_id, model, test_gen):
+        os.makedirs("denoised_images", exist_ok=True)
+        model_denoise_dir = os.path.join("denoised_images", run_id.split('/')[-1])
+        os.makedirs(model_denoise_dir, exist_ok=True)
+        count = 0
+        for batch_noised, _ in test_gen:
+            denoised = model.predict(batch_noised)
+            for i in range(test_gen.batch_size):
+                fig, axes = plt.subplots(1, 2, figsize=(8,6))
+                axes[0].imshow(batch_noised[i], cmap="gray"); axes[0].set_xticks([]); axes[0].set_yticks([]); axes[0].set_title("Noised")
+                axes[1].imshow(denoised[i], cmap="gray"); axes[1].set_xticks([]); axes[1].set_yticks([]); axes[1].set_title("Denoised")
+        
+                fig.savefig(os.path.join(model_denoise_dir, "%d.jpg" % count))
+                plt.close()
+                count += 1
 
     

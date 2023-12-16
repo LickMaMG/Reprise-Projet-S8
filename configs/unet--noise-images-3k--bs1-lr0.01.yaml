@@ -46,7 +46,7 @@ training:
     - name: mse
 
   metrics:
-    - name: mse
+    - name: mae
     - name: psnr
   
   custom_callbacks:

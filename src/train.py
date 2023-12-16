@@ -43,7 +43,7 @@ def main() -> None:
     data_name = cfg["dataset"]["annots_files"]["train"].split("annots-")[-1].split("-train.txt")[0]
     cfg["name"] = "unet--noise-images-%s--bs%d-lr%s" % (data_name, bs, str(lr))
 
-    print("\nCreating pipelines, generators and building model...")
+    print("\nCreating pipelines, generators ...")
 
     train_generator = Cfg.get_generator(
         set_type="train",
@@ -81,7 +81,7 @@ def main() -> None:
     )    
     
     model = Cfg.get_model(cfg)
-    print("Training %s ..." % cfg.get("name"))
+    print("\nTraining %s ..." % cfg.get("name"))
     
     model.compile(
         optimizer = optimizer,
@@ -96,11 +96,14 @@ def main() -> None:
         validation_data=val_generator
     )
 
+    print("\nEvaluation ...")
     evaluations = model.evaluate(test_generator)
     for i, metric in enumerate(loss + metrics):
         if not isinstance(metric, str): metric = metric.name
-        print("%s : %.3f" % (metric.ljust(5), evaluations[i]))
-    # Cfg.save_model(run_id=run_id, model=model)
+        print("%s : %.3f" % (metric.ljust(4), evaluations[i]))
+    
+    Cfg.save_model(run_id=run_id, model=model)
+    Cfg.test(run_id=run_id, model=model, test_gen=test_generator)
 
 
     
