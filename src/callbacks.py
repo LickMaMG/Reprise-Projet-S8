@@ -1,4 +1,4 @@
-import sys, io
+import sys, io, math
 sys.path.append("./")
 sys.path.append("../")
 
@@ -76,7 +76,9 @@ class SaveDenoised(keras.callbacks.Callback):
 
 
     def save_image(self, noised, denoised, save_as: str):
-        fig, axes = plt.subplots(2, 4, figsize=(8,6))
+        rows = math.ceil(self.batch_size / 2)
+        # cols = 2
+        fig, axes = plt.subplots(rows, rows*2, figsize=(8,6))
         axes = axes.ravel()
         for i in range(self.batch_size):
             axes[i*2].imshow(noised[i], cmap="gray"); axes[i*2].set_xticks([]); axes[i*2].set_yticks([]); axes[i*2].set_title("Noised")
