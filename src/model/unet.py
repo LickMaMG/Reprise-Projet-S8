@@ -3,7 +3,7 @@ from tensorflow import keras
 
 class EncoderBlock(keras.layers.Layer):
     def __init__(
-        self, filters: int, padding="same", use_maxpool: bool = True,
+        self, filters: int, dropout_rate, use_batchnorm: bool, padding="same", use_maxpool: bool = True,
         name="encoder_block", **kwargs
     ):
 
@@ -17,15 +17,25 @@ class EncoderBlock(keras.layers.Layer):
 
         self.conv1 = keras.layers.Conv2D(
             filters=filters, kernel_size=(3,3),
-            padding=padding, activation="relu"
+            padding=padding, activation="relu", use_bias=not use_batchnorm
         )
 
+        self.batchnorm1 = None
+        if use_batchnorm:
+            self.batchnorm1 = keras.layers.BatchNormalization()
+        
+        self.dropout = None
+        if dropout_rate > 0.0:
+            self.dropout = keras.layers.SpatialDropout2D(rate=dropout_rate)
 
         self.conv2 = keras.layers.Conv2D(
             filters=filters, kernel_size=(3,3),
-            padding=padding, activation="relu"
+            padding=padding, activation="relu", use_bias=not use_batchnorm
         )
 
+        self.batchnorm2 = None
+        if use_batchnorm:
+            self.batchnorm2 = keras.layers.BatchNormalization()
 
         self.maxpool = None
         if use_maxpool:
@@ -37,7 +47,17 @@ class EncoderBlock(keras.layers.Layer):
     
     def call(self, inputs):
         outputs = self.conv1(inputs)
+        
+        if self.batchnorm1 is not None:
+            outputs = self.batchnorm1(outputs)
+        
+        if self.dropout is not None:
+            outputs = self.dropout(outputs)
+        
+        if self.batchnorm2 is not None:
+            outputs = self.batchnorm2(outputs)
         outputs = self.conv2(outputs)
+        
 
         if self.maxpool is None:
             return outputs
@@ -52,7 +72,7 @@ class EncoderBlock(keras.layers.Layer):
 
 class DecoderBlock(keras.layers.Layer):
     def __init__(
-        self, filters: int, padding="same",
+        self, filters: int, dropout_rate: float, use_batchnorm: bool, padding="same",
         name="decoder_block", **kwargs
     ):
 
@@ -66,37 +86,55 @@ class DecoderBlock(keras.layers.Layer):
 
         self.upsample = keras.layers.Conv2DTranspose(
             filters=filters, kernel_size=(3,3),
-            strides=(2,2), padding=padding,
+            strides=(2,2), padding=padding, use_bias=not use_batchnorm,
         )
 
         self.conv1 = keras.layers.Conv2D(
             filters=filters, kernel_size=(3,3),
-            padding=padding, activation="relu"
+            padding=padding, activation="relu", use_bias=not use_batchnorm,
         )
 
+        self.batchnorm1 = None
+        if use_batchnorm:
+            self.batchnorm1 = keras.layers.BatchNormalization()
+        
+
+        self.dropout = None
+        if dropout_rate > 0.0:
+            self.dropout = keras.layers.SpatialDropout2D(rate=dropout_rate)
 
         self.conv2 = keras.layers.Conv2D(
             filters=filters, kernel_size=(3,3),
-            padding=padding, activation="relu"
+            padding=padding, activation="relu", use_bias=not use_batchnorm,
         )
-
+        
+        self.batchnorm2 = None
+        if use_batchnorm:
+            self.batchnorm2 = keras.layers.BatchNormalization()
     
     
     def call(self, last_layer_inputs, skip_connection_inputs):
         outputs = self.upsample(last_layer_inputs)
         outputs = tf.concat([outputs, skip_connection_inputs], axis=-1)
         outputs = self.conv1(outputs)
+        
+        if self.batchnorm1 is not None:
+            outputs = self.batchnorm1(outputs)
+        
+        if self.dropout is not None:
+            outputs = self.dropout(outputs)
         outputs = self.conv2(outputs)
+        
+        if self.batchnorm2 is not None:
+            outputs = self.batchnorm2(outputs)
         return outputs
     
-    # def get_config(self):
-    #     base_config = super().get_config()
-    #     return {**base_config, **self.config}
+    
 
 
 class Unet(keras.Model):
     def __init__(
-        self, filters: int, num_blocks: int, output_activation="sigmoid",
+        self, filters: int, num_blocks: int, dropout_rate: float, use_batchnorm: bool, output_activation="sigmoid",
         name="unet", **kwargs):
 
         super(Unet, self).__init__(name=name, **kwargs)
@@ -106,18 +144,20 @@ class Unet(keras.Model):
 
         for _ in range(num_blocks):
             self.encoder_blocks.append(
-                EncoderBlock(filters=filters)
+                EncoderBlock(filters=filters, dropout_rate=dropout_rate, use_batchnorm=use_batchnorm)
             )
             filters *= 2
         
-        self.bridge = EncoderBlock(filters=filters, use_maxpool=False)
+        self.bridge = EncoderBlock(filters=filters, dropout_rate=dropout_rate, use_batchnorm=use_batchnorm, use_maxpool=False)
 
         for _ in range(num_blocks):
             self.decoder_blocks.append(
-                DecoderBlock(filters=filters)
+                DecoderBlock(filters=filters, dropout_rate=dropout_rate, use_batchnorm=use_batchnorm)
             )
             filters //= 2
-                
+        
+        self.output_conv = keras.layers.Conv2D(filters=1, kernel_size=(1,1), activation=output_activation)
+        
     def call(self, inputs):
         outputs = inputs
         # with tf.init_scope():
@@ -131,5 +171,6 @@ class Unet(keras.Model):
 
         for block, skip_connection in zip(self.decoder_blocks, skip_connections[::-1]):
             outputs = block(outputs, skip_connection)
-            # print(outputs.shape)
+        
+        outputs = self.output_conv(outputs)
         return outputs
