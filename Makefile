@@ -7,17 +7,20 @@ help:
 	@echo ""
 
 
-script-create-stents: ## Read .raw file and create images of 9 stents
+create-stents: ## Read .raw file and create images of 9 stents
 	@python scripts/make_stents.py
 
-script-create-dataset: ## Create dataset of noised stents ### - num : num of desc
+create-dataset: ## Create dataset of noised stents ### - num : num of desc
 	@python scripts/create_dataset.py \
 		--basedir dataset \
 		--num-images $(num)
 
 train: ## Train a model using config files ### - cfg : config file
 	@python ./src/train.py \
-		--cfg $(cfg)
+	--cfg $(cfg) \
+	$(if $(data), --data $(data)) \
+	$(if $(bs), --batch_size $(bs)) \
+	$(if $(lr),--learning_rate $(lr)) \
 
 tensorboard: ## Run tensorboard
 	tensorboard --logdir logs --port 6006
