@@ -1,0 +1,64 @@
+name: unet--noise-images-3k--bs1-lr0.01
+
+model:
+  name: unet
+  params:
+    filters: 32
+    num_blocks: 4
+    dropout_rate: 0.0
+    use_batchnorm: true
+
+
+dataset:
+  name: generator
+
+  annots_files:
+    train:      dataset/noise-annots-3k-train.txt
+    validation: dataset/noise-annots-3k-validation.txt
+    test:       dataset/noise-annots-3k-test.txt
+
+  params:
+    batch_size: 1
+    input_shape: [224, 224, 1]
+  
+  pipelines:
+    train:
+      - name: Augmentation
+      - name: Normalize
+
+    validation:
+      - name: Augmentation
+      - name: Normalize
+
+    test:
+      - name: Normalize
+
+
+training:
+  epochs: 2
+  
+  optimizer:
+    name: adam
+    params:
+      learning_rate: 0.01
+
+  loss:
+    - name: mse
+
+  metrics:
+    - name: mse
+    - name: psnr
+  
+  custom_callbacks:
+    - name: savedenoised
+  
+  # lr_scheduler:
+  #   name: WarmupCosineSchedule
+  #   params:
+  #     base_lr: 0.1
+  #     warmup_epochs: 4
+  #     warmup_start_lr: 0.01
+  #     max_epochs: 20
+  
+  
+  

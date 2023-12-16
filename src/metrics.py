@@ -14,10 +14,6 @@ class PeakSignalNoiseRatio(tf.keras.metrics.Metric):
         self.total = self.add_weight("total", initializer="zeros")
     
     def update_state(self, y_true, y_pred, sample_weight=None):
-        # tf.debugging.assert_shapes([
-        #     (y_true, ("batch_size", "height", "width", "channels")),
-        #     (y_pred, ("batch_size", "height", "width", "channels"))
-        # ])
 
         squared_error = tf.square(y_true - y_pred)
         mse = tf.reduce_mean(squared_error, axis=[1, 2, 3])
