@@ -2,8 +2,8 @@
 env/
 
 # ignore png files
-# *.png
-# *.jpg
+*.png
+*.jpg
 
 # ignore cache
 __pycache__/
