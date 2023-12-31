@@ -2,8 +2,9 @@
 env/
 
 # ignore png files
-*.png
-*.jpg
+# *.png
+# *.jpg
+/denoised_images/
 
 # ignore cache
 __pycache__/
@@ -12,7 +13,7 @@ __pycache__/
 *.pdf
 
 # data
-/dataset/
+dataset/
 *.raw
 
 # notebooks
@@ -23,3 +24,5 @@ logs/
 
 # models
 models/
+
+
