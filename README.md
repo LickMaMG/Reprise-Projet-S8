@@ -26,7 +26,7 @@ Use the following command for training:
 ```bash
 make train cfg=configs/unet--noise-images-3k--bs1-lr0.01.yaml data=[data_name] bs=[batch_size] lr=[learning_rate]
 ```
-- `data` string argument is the number of image. Look at folders in [**dataset**](/dataset/). You should use the string after -. Exemple to train on [**data-1k**](/dataset/data-1k/) dataset, use `data=1k`.
+- `data` string argument is the number of image. Look at folders in dataset after you create your data. You should use the string after -. Exemple to train on **data-1k** dataset, use `data=1k`.
 - `bs` argument for the batch_size
 - `lr` argument for learning rate
 
