@@ -37,57 +37,62 @@ The batch size, the learning rate are the main hyperparameters we focused on. A 
 We trained all the models on 10 epochs. Some of them start diverging after epoch 5/6. It concerns especially training with larger dataset of noised images and learning rate of 0.1
 
 Please view [**logs**](/logs_/) for comparing model with available denoising image on validation set during training.
+Use the command:
+```bash
+tensorboard --logdir logs_ --port 6006
+```
 
 Some denoised image on validation set:
 
-- **data=3k, batch_size=1, learning_rate=0.01, epoch=7** -> [**unet--noise-images-3k--bs1-lr0.01_2023_12_16-06_58_58/validation**](/logs_/unet--noise-images-3k--bs1-lr0.01_2023_12_16-06_58_58/validation)
-    
-    <img src="logs_/unet--noise-images-3k--bs1-lr0.01_2023_12_16-06_58_58/validation/imgs/6.png" alt="Image" width=400>
-
-- **data=3k, batch_size=4, learning_rate=0.1, epoch=7** -> [**unet--noise-images-3k--bs4-lr0.1_2023_12_16-07_20_40/validation**](/logs_/unet--noise-images-3k--bs4-lr0.1_2023_12_16-07_20_40/validation)
-    
-    <img src="logs_/unet--noise-images-3k--bs4-lr0.1_2023_12_16-07_20_40/validation/imgs/6.png" alt="Image" width=400>
-
-- **data=3k, batch_size=4, learning_rate=0.01, epoch=10** -> [**unet--noise-images-3k--bs4-lr0.01_2023_12_16-07_37_09/validation**](/logs_/unet--noise-images-3k--bs4-lr0.01_2023_12_16-07_37_09/validation)
-    
-    <img src="logs_/unet--noise-images-3k--bs4-lr0.01_2023_12_16-07_37_09/validation/imgs/9.png" alt="Image" width=400>
-
-- **data=90, batch_size=1, learning_rate=0.01, epoch=10** -> [**unet--noise-images-90--bs1-lr0.01_2023_12_16-03_10_40/validation**](/logs_/unet--noise-images-90--bs1-lr0.01_2023_12_16-03_10_40/validation)
+- **data=90, batch_size=1, learning_rate=0.01, epoch=10** -> [**other denoised images**](/logs_/unet--noise-images-90--bs1-lr0.01_2023_12_16-03_10_40/validation/imgs)
     
     <img src="logs_/unet--noise-images-90--bs1-lr0.01_2023_12_16-03_10_40/validation/imgs/9.png" alt="Image" width=400>
 
-- **data=180, batch_size=1, learning_rate=0.01, epoch=10** -> [**unet--noise-images-180--bs1-lr0.01_2023_12_16-03_13_55/validation**](/logs_/unet--noise-images-180--bs1-lr0.01_2023_12_16-03_13_55/validation)
+- **data=180, batch_size=1, learning_rate=0.01, epoch=10** -> [**other denoised images**](/logs_/unet--noise-images-180--bs1-lr0.01_2023_12_16-03_13_55/validation/imgs)
     
     <img src="logs_/unet--noise-images-180--bs1-lr0.01_2023_12_16-03_13_55/validation/imgs/9.png" alt="Image" width=400>
 
-- **data=270, batch_size=1, learning_rate=0.01, epoch=10** -> [**unet--noise-images-270--bs1-lr0.01_2023_12_16-03_19_04/validation**](/logs_/unet--noise-images-270--bs1-lr0.01_2023_12_16-03_19_04/validation)
+- **data=270, batch_size=1, learning_rate=0.01, epoch=10** -> [**other denoised images**](/logs_/unet--noise-images-270--bs1-lr0.01_2023_12_16-03_19_04/validation/imgs)
     
     <img src="logs_/unet--noise-images-270--bs1-lr0.01_2023_12_16-03_19_04/validation/imgs/9.png" alt="Image" width=400>
 
-- **data=360, batch_size=4, learning_rate=0.01, epoch=10** -> [**unet--noise-images-360--bs4-lr0.01_2023_12_16-03_30_18/validation**](/logs_/unet--noise-images-360--bs4-lr0.01_2023_12_16-03_30_18/validation)
+- **data=360, batch_size=4, learning_rate=0.01, epoch=10** -> [**other denoised images**](/logs_/unet--noise-images-360--bs4-lr0.01_2023_12_16-03_30_18/validation/imgs)
     
     <img src="logs_/unet--noise-images-360--bs4-lr0.01_2023_12_16-03_30_18/validation/imgs/9.png" alt="Image" width=400>
 
-- **data=540, batch_size=1, learning_rate=0.01, epoch=10** -> [**unet--noise-images-540--bs1-lr0.01_2023_12_16-03_45_54/validation**](/logs_/unet--noise-images-540--bs1-lr0.01_2023_12_16-03_45_54/validation)
+- **data=540, batch_size=1, learning_rate=0.01, epoch=10** -> [**other denoised images**](/logs_/unet--noise-images-540--bs1-lr0.01_2023_12_16-03_45_54/validation/imgs)
     
     <img src="logs_/unet--noise-images-540--bs1-lr0.01_2023_12_16-03_45_54/validation/imgs/9.png" alt="Image" width=400>
 
-- **data=630, batch_size=1, learning_rate=0.01, epoch=** -> [****](/.  
-  llogs_/unet--noise-images-630- ->bs1-lr0.01_2023_12_16ogs_/validation/logs_/unet--noise-images-630--bs1-lr0.01_2023_12_16-03_58_29  <img src="logs_/unet--noise-images-630--bs1-lr0.01_2023_12_16-03_58_29/validation/imgs/7.png" alt="Image" width=400>
+- **data=630, batch_size=1, learning_rate=0.01, epoch=** -> [**other denoised images**](/logs_/unet--noise-images-630--bs1-lr0.01_2023_12_16-03_58_29/validation/imgs)
+    
+    <img src="logs_/unet--noise-images-630--bs1-lr0.01_2023_12_16-03_58_29/validation/imgs/7.png" alt="Image" width=400>
 
-- **data=720, batch_size=4, learning_rate=0.01, epoch=** -> [****](/.  
-  llogs_/unet--noise-images-720- ->bs4-lr0.01_2023_12_16ogs_/validation/logs_/unet--noise-images-720--bs4-lr0.01_2023_12_16-04_21_04  <img src="logs_/unet--noise-images-720--bs4-lr0.01_2023_12_16-04_21_04/validation/imgs/9.png" alt="Image" width=400>
+- **data=720, batch_size=4, learning_rate=0.01, epoch=** -> [**other denoised images**](/logs_/unet--noise-images-720--bs4-lr0.01_2023_12_16-04_21_04/validation/imgs)
+    
+    <img src="logs_/unet--noise-images-720--bs4-lr0.01_2023_12_16-04_21_04/validation/imgs/9.png" alt="Image" width=400>
 
-- **data=810, batch_size=1, learning_rate=0.01, epoch=** -> [****](/.  
-  llogs_/unet--noise-images-810- ->bs1-lr0.01_2023_12_16ogs_/validation/logs_/unet--noise-images-810--bs1-lr0.01_2023_12_16-04_29_35  <img src="logs_/unet--noise-images-810--bs1-lr0.01_2023_12_16-04_29_35/validation/imgs/8.png" alt="Image" width=400>
+- **data=810, batch_size=1, learning_rate=0.01, epoch=** -> [**other denoised images**](/logs_/unet--noise-images-810--bs1-lr0.01_2023_12_16-04_29_35/validation/imgs)
+    
+    <img src="logs_/unet--noise-images-810--bs1-lr0.01_2023_12_16-04_29_35/validation/imgs/8.png" alt="Image" width=400>
 
-- **data=1k, batch_size=4, learning_rate=0.01, epoch=** -> [****](/.  
-  llogs_/unet--noise-images-1k- ->bs4-lr0.01_2023_12_16ogs_/validation/logs_/unet--noise-images-1k--bs4-lr0.01_2023_12_16-05_32_06  <img src="logs_/unet--noise-images-1k--bs4-lr0.01_2023_12_16-05_32_06/validation/imgs/9.png" alt="Image" width=400>
+- **data=1k, batch_size=4, learning_rate=0.01, epoch=** -> [**other denoised images**](/logs_/unet--noise-images-1k--bs4-lr0.01_2023_12_16-05_32_06/validation/imgs)
+    
+    <img src="logs_/unet--noise-images-1k--bs4-lr0.01_2023_12_16-05_32_06/validation/imgs/9.png" alt="Image" width=400>
 
-- **data=2k, batch_size=4, learning_rate=0.1, epoch=**
-     -> [****](/)
-    <img. ="logs_/unet--lvalidatio ->/imgs/9.png" alt="/validationImage" 
-ogs_/noise-images-2validation/imgs/9.png" alt="Image" 
-    widthk--bs4-lr0.1_2023_12_16-06_12_50/validation/imgs/9.png" alt="Image" 
+- **data=2k, batch_size=4, learning_rate=0.1, epoch=** -> [**other denoised images**](/logs_/unet--noise-images-2k--bs4-lr0.1_2023_12_16-06_12_50/validation)
+    
+    <img src="logs_/unet--noise-images-2k--bs4-lr0.1_2023_12_16-06_12_50/validation/imgs/9.png" alt="Image" 
     width=400>
 
+- **data=3k, batch_size=1, learning_rate=0.01, epoch=7** -> [**other denoised images**](/logs_/unet--noise-images-3k--bs1-lr0.01_2023_12_16-06_58_58/validation/imgs)
+    
+    <img src="logs_/unet--noise-images-3k--bs1-lr0.01_2023_12_16-06_58_58/validation/imgs/6.png" alt="Image" width=400>
+
+- **data=3k, batch_size=4, learning_rate=0.1, epoch=7** -> [**other denoised images**](/logs_/unet--noise-images-3k--bs4-lr0.1_2023_12_16-07_20_40/validation/imgs)
+    
+    <img src="logs_/unet--noise-images-3k--bs4-lr0.1_2023_12_16-07_20_40/validation/imgs/6.png" alt="Image" width=400>
+
+- **data=3k, batch_size=4, learning_rate=0.01, epoch=10** -> [**other denoised images**](/logs_/unet--noise-images-3k--bs4-lr0.01_2023_12_16-07_37_09/validation/imgs)
+    
+    <img src="logs_/unet--noise-images-3k--bs4-lr0.01_2023_12_16-07_37_09/validation/imgs/9.png" alt="Image" width=400>
